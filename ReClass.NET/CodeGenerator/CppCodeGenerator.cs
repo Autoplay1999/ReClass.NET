@@ -339,18 +339,19 @@ namespace ReClassNET.CodeGenerator
 			WriteNodes(writer, nodes, logger);
 
 			var vTableNodes = @class.Nodes.OfType<VirtualMethodTableNode>().ToList();
+
 			if (vTableNodes.Any())
 			{
 				writer.WriteLine();
-
 				var virtualMethodNodes = vTableNodes
 					.SelectMany(vt => vt.Nodes)
 					.OfType<VirtualMethodNode>();
+
 				foreach (var node in virtualMethodNodes)
 				{
-					writer.Write("virtual void ");
+					writer.Write("virtual ");
 					writer.Write(node.MethodName);
-					writer.WriteLine("();");
+					writer.WriteLine(" = 0;");
 				}
 			}
 
