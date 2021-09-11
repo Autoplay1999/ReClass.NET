@@ -171,6 +171,11 @@ namespace ReClassNET.DataExchange.ReClass
 					element.SetAttributeValue(XmlReferenceAttribute, enumNode.Enum.Name);
 					break;
 				}
+				case CustomNode customNode:
+				{
+					element.SetAttributeValue(XmlSizeAttribute, customNode.RealSize);
+					break;
+				}
 			}
 
 			return element;

@@ -301,6 +301,11 @@ namespace ReClassNET.DataExchange.ReClass
 					enumNode.ChangeEnum(@enum);
 					break;
 				}
+				case CustomNode customNode:
+				{
+					customNode.RealSize = (int?)element.Attribute(XmlSizeAttribute) ?? 0;
+					break;
+				}
 			}
 
 			return node;
