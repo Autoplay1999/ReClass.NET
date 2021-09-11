@@ -154,13 +154,42 @@ namespace ReClassNET.CodeGenerator
 			};
 		}
 
+		public bool ShowOffset { get; set; } = true;
+
+		public bool ShowPadding { get; set; } = true;
+
 		public string GenerateCode(IReadOnlyList<ClassNode> classes, IReadOnlyList<EnumDescription> enums, ILogger logger)
 		{
 			using var sw = new StringWriter();
 			using var iw = new IndentedTextWriter(sw, "\t");
 
-			iw.WriteLine($"// Created with {Constants.ApplicationName} {Constants.ApplicationVersion} by {Constants.Author}");
+			iw.WriteLine($"// {DateTime.Now.ToString("MM-dd-yyyy HH:mm:ss")}");
 			iw.WriteLine();
+
+			using (var en = classes.GetEnumerator())
+			{
+				var c = en as ICollection<ClassNode>;
+
+				while (c != null)
+				{
+					if (c.Count < 2)
+						break;
+
+					if (en.MoveNext())
+					{
+						iw.WriteLine($"class {en.Current.Name};");
+
+						while (en.MoveNext())
+						{
+							iw.WriteLine($"class {en.Current.Name};");
+						}
+
+						iw.WriteLine();
+					}
+
+					break;
+				}
+			}
 
 			using (var en = enums.GetEnumerator())
 			{
@@ -216,7 +245,6 @@ namespace ReClassNET.CodeGenerator
 					while (en.MoveNext())
 					{
 						iw.WriteLine();
-
 						WriteClass(iw, en.Current, classes, logger);
 					}
 				}
@@ -301,10 +329,8 @@ namespace ReClassNET.CodeGenerator
 				writer.Write(@class.Comment);
 			}
 
+			writer.Write(" {");
 			writer.WriteLine();
-			
-			writer.WriteLine("{");
-			writer.WriteLine("public:");
 			writer.Indent++;
 
 			var nodes = @class.Nodes
@@ -333,6 +359,7 @@ namespace ReClassNET.CodeGenerator
 				.OfType<FunctionNode>()
 				.Where(f => f.BelongsToClass == @class)
 				.ToList();
+
 			if (functionNodes.Any())
 			{
 				writer.WriteLine();
@@ -345,9 +372,9 @@ namespace ReClassNET.CodeGenerator
 			}
 
 			writer.Indent--;
-			writer.Write("}; //Size: 0x");
-			writer.WriteLine($"{@class.MemorySize:X04}");
-
+			writer.Write("}; // Size: 0x");
+			writer.WriteLine($"{@class.MemorySize:X08} ({@class.MemorySize:D})");
+			writer.WriteLine();
 			writer.WriteLine($"static_assert(sizeof({@class.Name}) == 0x{@class.MemorySize:X});");
 		}
 
@@ -364,6 +391,7 @@ namespace ReClassNET.CodeGenerator
 
 			var fill = 0;
 			var fillStart = 0;
+			var isPrivate = true;
 
 			static BaseNode CreatePaddingMember(int offset, int count)
 			{
@@ -371,11 +399,11 @@ namespace ReClassNET.CodeGenerator
 				{
 					Offset = offset,
 					Count = count,
-					Name = $"pad_{offset:X04}"
+					Name = $"pad_{offset:X04}",
+					IsPadding = true
 				};
 
 				node.ChangeInnerNode(new Utf8CharacterNode());
-
 				return node;
 			}
 
@@ -387,23 +415,49 @@ namespace ReClassNET.CodeGenerator
 					{
 						fillStart = member.Offset;
 					}
-					fill += member.MemorySize;
 
+					fill += member.MemorySize;
 					continue;
 				}
 
-				if (fill != 0)
+				if (ShowPadding)
 				{
-					WriteNode(writer, CreatePaddingMember(fillStart, fill), logger);
+					if (fill != 0)
+					{
+						if (!isPrivate)
+						{
+							writer.Indent--;
+							writer.WriteLine("private:");
+							writer.Indent++;
+							isPrivate = true;
+						}
 
-					fill = 0;
+						WriteNode(writer, CreatePaddingMember(fillStart, fill), logger);
+						fill = 0;
+					}
+
+					if (isPrivate)
+					{
+						writer.Indent--;
+						writer.WriteLine("public:");
+						writer.Indent++;
+						isPrivate = false;
+					}
 				}
 
 				WriteNode(writer, member, logger);
 			}
 
-			if (fill != 0)
+			if (fill != 0 && ShowPadding)
 			{
+				if (!isPrivate)
+				{
+					writer.Indent--;
+					writer.WriteLine("private:");
+					writer.Indent++;
+					isPrivate = true;
+				}
+
 				WriteNode(writer, CreatePaddingMember(fillStart, fill), logger);
 			}
 		}
@@ -418,8 +472,8 @@ namespace ReClassNET.CodeGenerator
 		{
 			Contract.Requires(writer != null);
 			Contract.Requires(node != null);
-
 			var custom = GetCustomCodeGeneratorForNode(node);
+
 			if (custom != null)
 			{
 				if (custom.WriteNode(writer, node, WriteNode, logger))
@@ -429,49 +483,67 @@ namespace ReClassNET.CodeGenerator
 			}
 
 			node = TransformNode(node);
-
 			var simpleType = GetTypeDefinition(node, logger);
+
 			if (simpleType != null)
 			{
 				//$"{type} {node.Name}; //0x{node.Offset.ToInt32():X04} {node.Comment}".Trim();
+
+				if (ShowOffset)
+					writer.Write($"/* {node.Offset:X08} */ ");
+
 				writer.Write(simpleType);
 				writer.Write(" ");
 				writer.Write(node.Name);
-				writer.Write("; //0x");
-				writer.Write($"{node.Offset:X04}");
+				writer.Write(";");
+
 				if (!string.IsNullOrEmpty(node.Comment))
 				{
-					writer.Write(" ");
+					writer.Write(" // ");
 					writer.Write(node.Comment);
 				}
 				writer.WriteLine();
 			}
 			else if (node is BaseWrapperNode)
 			{
+				if (ShowOffset)
+					writer.Write($"/* {node.Offset:X08} */ ");
+
 				writer.Write(ResolveWrappedType(node, false, logger));
-				writer.Write("; //0x");
-				writer.Write($"{node.Offset:X04}");
+				writer.Write(";");
+
 				if (!string.IsNullOrEmpty(node.Comment))
 				{
-					writer.Write(" ");
+					writer.Write(" // ");
 					writer.Write(node.Comment);
 				}
+
 				writer.WriteLine();
 			}
 			else if (node is UnionNode unionNode)
 			{
-				writer.Write("union //0x");
-				writer.Write($"{node.Offset:X04}");
-				if (!string.IsNullOrEmpty(node.Comment))
-				{
-					writer.Write(" ");
-					writer.Write(node.Comment);
-				}
-				writer.WriteLine();
-				writer.WriteLine("{");
+				if (ShowOffset)
+					writer.Write($"/* {node.Offset:X08} */ ");
+
+				writer.Write("union {");
 				writer.Indent++;
 
+				if (!string.IsNullOrEmpty(node.Comment))
+				{
+					writer.Write(" // ");
+					writer.Write(node.Comment);
+				}
+
+				writer.WriteLine();
+				var origShowOffsetValue = ShowOffset;
+				var origShowPaddingValue = ShowPadding;
+				ShowOffset = false;
+				ShowPadding = false;
+
 				WriteNodes(writer, unionNode.Nodes, logger);
+
+				ShowOffset = origShowOffsetValue;
+				ShowPadding = origShowPaddingValue;
 
 				writer.Indent--;
 				writer.WriteLine("};");
@@ -623,7 +695,10 @@ namespace ReClassNET.CodeGenerator
 						sb.Append(')');
 					}
 
-					sb.Append($"[{arrayNode.Count}]");
+					if (currentNode.IsPadding)
+						sb.Append($"[0x{arrayNode.Count:X}]");
+					else
+						sb.Append($"[{arrayNode.Count}]");
 
 					lastWrapperNode = arrayNode;
 					currentNode = arrayNode.InnerNode;

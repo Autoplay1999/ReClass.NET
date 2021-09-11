@@ -51,6 +51,9 @@ namespace ReClassNET.Nodes
 		/// <summary>Size of the node in bytes.</summary>
 		public abstract int MemorySize { get; }
 
+		/// <summary>Gets or sets a value indicating whether this node is padding.</summary>
+		public bool IsPadding { get; set; }
+		
 		public event NodeEventHandler NameChanged;
 		public event NodeEventHandler CommentChanged;
 
