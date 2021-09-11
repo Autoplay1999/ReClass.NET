@@ -6,7 +6,7 @@ using ReClassNET.Nodes;
 
 namespace ReClassNET.DataExchange.ReClass.Legacy
 {
-	public class CustomNode : BaseNode
+	public class OrigCustomNode : BaseNode
 	{
 		public override int MemorySize => throw new NotImplementedException();
 

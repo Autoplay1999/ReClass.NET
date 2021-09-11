@@ -253,6 +253,16 @@ namespace ReClassNET.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap B16x16_Button_Custom {
+            get {
+                object obj = ResourceManager.GetObject("B16x16_Button_Custom", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap B16x16_Button_Delete {
             get {
                 object obj = ResourceManager.GetObject("B16x16_Button_Delete", resourceCulture);
@@ -1371,7 +1381,7 @@ namespace ReClassNET.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 2020/10/17 09:45:04
+        ///   Looks up a localized string similar to 2021/09/11 20:18:31
         ///.
         /// </summary>
         internal static string BuildDate {

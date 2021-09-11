@@ -36,7 +36,7 @@ namespace ReClassNET.DataExchange.ReClass
 			buildInStringToTypeMap["ClassPtrNode"] = typeof(ClassPointerNode);
 		}
 
-		private static readonly Dictionary<string, Type> buildInStringToTypeMap = new[]
+		private static readonly Dictionary<string, Type> buildInStringToTypeMap = (new[]
 		{
 			typeof(BoolNode),
 			typeof(BitFieldNode),
@@ -75,8 +75,9 @@ namespace ReClassNET.DataExchange.ReClass
 			typeof(VirtualMethodTableNode),
 			typeof(ArrayNode),
 			typeof(PointerNode),
-			typeof(UnionNode)
-		}.ToDictionary(t => t.Name, t => t);
+			typeof(UnionNode),
+			typeof(Nodes.CustomNode)
+		}).ToDictionary(t => t.Name, t => t);
 
 		private static readonly Dictionary<Type, string> buildInTypeToStringMap = buildInStringToTypeMap.ToDictionary(kv => kv.Value, kv => kv.Key);
 	}

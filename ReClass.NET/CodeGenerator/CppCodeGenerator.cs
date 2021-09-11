@@ -549,6 +549,22 @@ namespace ReClassNET.CodeGenerator
 				writer.Indent--;
 				writer.WriteLine("};");
 			}
+			else if (node is CustomNode customNode)
+			{
+				if (ShowOffset)
+					writer.Write($"/* {node.Offset:X08} */ ");
+
+				writer.Write(node.Name);
+				writer.Write(";");
+
+				if (!string.IsNullOrEmpty(node.Comment))
+				{
+					writer.Write(" // ");
+					writer.Write(node.Comment);
+				}
+
+				writer.WriteLine();
+			}
 			else
 			{
 				logger.Log(LogLevel.Error, $"Skipping node with unhandled type: {node.GetType()}");
