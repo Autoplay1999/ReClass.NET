@@ -7,17 +7,17 @@ namespace ReClassNET.Project
 	{
 		public string TypeBool { get; set; } = "bool";
 
-		public string TypeInt8 { get; set; } = "int8_t";
-		public string TypeInt16 { get; set; } = "int16_t";
-		public string TypeInt32 { get; set; } = "int32_t";
-		public string TypeInt64 { get; set; } = "int64_t";
-		public string TypeNInt { get; set; } = "ptrdiff_t";
+		public string TypeInt8 { get; set; } = "INT8";
+		public string TypeInt16 { get; set; } = "INT16";
+		public string TypeInt32 { get; set; } = "INT32";
+		public string TypeInt64 { get; set; } = "INT64";
+		public string TypeNInt { get; set; } = "INT_PTR";
 
-		public string TypeUInt8 { get; set; } = "uint8_t";
-		public string TypeUInt16 { get; set; } = "uint16_t";
-		public string TypeUInt32 { get; set; } = "uint32_t";
-		public string TypeUInt64 { get; set; } = "uint64_t";
-		public string TypeNUInt { get; set; } = "size_t";
+		public string TypeUInt8 { get; set; } = "UINT8";
+		public string TypeUInt16 { get; set; } = "UINT16";
+		public string TypeUInt32 { get; set; } = "UINT32";
+		public string TypeUInt64 { get; set; } = "UINT64";
+		public string TypeNUInt { get; set; } = "UINT_PTR";
 
 		public string TypeFloat { get; set; } = "float";
 		public string TypeDouble { get; set; } = "double";
@@ -30,8 +30,8 @@ namespace ReClassNET.Project
 		public string TypeMatrix3x4 { get; set; } = "Matrix3x4";
 		public string TypeMatrix4x4 { get; set; } = "Matrix4x4";
 
-		public string TypeUtf8Text { get; set; } = "char";
-		public string TypeUtf16Text { get; set; } = "wchar_t"; // Should be char16_t, but this type isn't well supported at the moment.
+		public string TypeUtf8Text { get; set; } = "CHAR";
+		public string TypeUtf16Text { get; set; } = "WCHAR"; // Should be char16_t, but this type isn't well supported at the moment.
 		public string TypeUtf32Text { get; set; } = "char32_t";
 
 		public string TypeFunctionPtr { get; set; } = "void*";

@@ -110,6 +110,7 @@ namespace ReClassNET.Forms
 
 		private void SetColorBindings()
 		{
+			SetBinding(nodeClassColorBox, nameof(ColorBox.Color), settings, nameof(Settings.ClassColor));
 			SetBinding(backgroundColorBox, nameof(ColorBox.Color), settings, nameof(Settings.BackgroundColor));
 
 			SetBinding(nodeSelectedColorBox, nameof(ColorBox.Color), settings, nameof(Settings.SelectedColor));
