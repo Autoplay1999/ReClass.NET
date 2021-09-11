@@ -34,7 +34,7 @@ namespace ReClassNET.Nodes
 
 			AddSelection(context, x, y, context.Font.Height);
 			x = AddIconPadding(context, x);
-			x = AddIcon(context, x, y, context.IconProvider.Text, HotSpot.NoneId, HotSpotType.None);
+			x = AddIconPadding(context, x);
 			x = AddAddressOffset(context, x, y);
 			x = AddText(context, x, y, context.Settings.TypeColor, HotSpot.NoneId, "Custom") + context.Font.Width;
 			x = AddText(context, x, y, context.Settings.NameColor, HotSpot.NoneId, "[");
