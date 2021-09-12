@@ -10,6 +10,7 @@ using ReClassNET.Extensions;
 using ReClassNET.Logger;
 using ReClassNET.Nodes;
 using ReClassNET.Project;
+using ReClassNET;
 
 namespace ReClassNET.DataExchange.ReClass
 {
@@ -29,6 +30,7 @@ namespace ReClassNET.DataExchange.ReClass
 
 			using var archive = new ZipArchive(input, ZipArchiveMode.Read);
 			var dataEntry = archive.GetEntry(DataFileName);
+
 			if (dataEntry == null)
 			{
 				throw new FormatException();
@@ -36,36 +38,42 @@ namespace ReClassNET.DataExchange.ReClass
 
 			using var entryStream = dataEntry.Open();
 			var document = XDocument.Load(entryStream);
+
 			if (document.Root?.Element(XmlClassesElement) == null)
 			{
 				throw new FormatException("The data has not the correct format.");
 			}
 
 			uint.TryParse(document.Root.Attribute(XmlVersionAttribute)?.Value, out var fileVersion);
+
 			if ((fileVersion & FileVersionCriticalMask) > (FileVersion & FileVersionCriticalMask))
 			{
 				throw new FormatException($"The file version is unsupported. A newer {Constants.ApplicationName} version is required to read it.");
 			}
 
 			var platform = document.Root.Attribute(XmlPlatformAttribute)?.Value;
+
 			if (platform != Constants.Platform)
 			{
 				logger.Log(LogLevel.Warning, $"The platform of the file ({platform}) doesn't match the program platform ({Constants.Platform}).");
 			}
 
 			var customDataElement = document.Root.Element(XmlCustomDataElement);
+
 			if (customDataElement != null)
 			{
 				project.CustomData.Deserialize(customDataElement);
 			}
 
 			var typeMappingElement = document.Root.Element(XmlTypeMappingElement);
+
 			if (typeMappingElement != null)
 			{
 				project.TypeMapping.Deserialize(typeMappingElement);
 			}
 
 			var enumsElement = document.Root.Element(XmlEnumsElement);
+
 			if (enumsElement != null)
 			{
 				foreach (var enumElement in enumsElement.Elements(XmlEnumElement))
@@ -73,8 +81,8 @@ namespace ReClassNET.DataExchange.ReClass
 					var name = enumElement.Attribute(XmlNameAttribute)?.Value ?? string.Empty;
 					var useFlagsMode = (bool?)enumElement.Attribute(XmlFlagsAttribute) ?? false;
 					var size = enumElement.Attribute(XmlSizeAttribute).GetEnumValue<EnumDescription.UnderlyingTypeSize>();
-
 					var values = new Dictionary<string, long>();
+
 					foreach (var itemElement in enumElement.Elements(XmlItemElement))
 					{
 						var itemName = itemElement.Attribute(XmlNameAttribute)?.Value ?? string.Empty;
@@ -87,22 +95,22 @@ namespace ReClassNET.DataExchange.ReClass
 					{
 						Name = name
 					};
-					@enum.SetData(useFlagsMode, size, values);
 
+					@enum.SetData(useFlagsMode, size, values);
 					project.AddEnum(@enum);
 				}
 			}
 
 			var classes = new List<(XElement, ClassNode)>();
-
 			var classesElement = document.Root.Element(XmlClassesElement);
+
 			if (classesElement != null)
 			{
 				foreach (var element in classesElement
 					.Elements(XmlClassElement)
 					.DistinctBy(e => e.Attribute(XmlUuidAttribute)?.Value))
 				{
-					var node = new ClassNode(false)
+					var node = new ClassNode(true)
 					{
 						Uuid = ParseUuid(element.Attribute(XmlUuidAttribute)?.Value),
 						Name = element.Attribute(XmlNameAttribute)?.Value ?? string.Empty,
@@ -113,7 +121,6 @@ namespace ReClassNET.DataExchange.ReClass
 					if (!project.ContainsClass(node.Uuid))
 					{
 						project.AddClass(node);
-
 						classes.Add((element, node));
 					}
 				}
@@ -139,6 +146,7 @@ namespace ReClassNET.DataExchange.ReClass
 			BaseNode CreateNode()
 			{
 				var converter = CustomNodeSerializer.GetReadConverter(element);
+
 				if (converter != null)
 				{
 					return converter.CreateNodeFromElement(element, parent, project.Classes, logger, CreateNodeFromElement);
@@ -156,6 +164,7 @@ namespace ReClassNET.DataExchange.ReClass
 			}
 
 			var node = CreateNode();
+
 			if (node == null)
 			{
 				logger.Log(LogLevel.Error, "Could not create node.");
@@ -164,7 +173,6 @@ namespace ReClassNET.DataExchange.ReClass
 			}
 
 			node.ParentNode = parent;
-
 			node.Name = element.Attribute(XmlNameAttribute)?.Value ?? string.Empty;
 			node.Comment = element.Attribute(XmlCommentAttribute)?.Value ?? string.Empty;
 			node.IsHidden = bool.TryParse(element.Attribute(XmlHiddenAttribute)?.Value, out var val) && val;
@@ -174,6 +182,7 @@ namespace ReClassNET.DataExchange.ReClass
 				ClassNode GetClassNodeFromElementReference()
 				{
 					var reference = ParseUuid(element.Attribute(XmlReferenceAttribute)?.Value);
+
 					if (!project.ContainsClass(reference))
 					{
 						logger.Log(LogLevel.Error, $"Skipping node with unknown reference: {reference}");
@@ -189,6 +198,7 @@ namespace ReClassNET.DataExchange.ReClass
 				if (node is ClassPointerNode || node is ClassInstanceArrayNode || node is ClassPointerArrayNode)
 				{
 					var innerClass = GetClassNodeFromElementReference();
+
 					if (innerClass == null)
 					{
 						return null;
@@ -224,6 +234,7 @@ namespace ReClassNET.DataExchange.ReClass
 					if (wrapperNode.CanChangeInnerNodeTo(innerNode))
 					{
 						var rootWrapperNode = node.GetRootWrapperNode();
+
 						if (rootWrapperNode.ShouldPerformCycleCheckForInnerNode()
 							&& innerNode is ClassNode classNode
 							&& ClassUtil.IsCyclicIfClassIsAccessibleFromParent(node.GetParentClass(), classNode, project.Classes))
