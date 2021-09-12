@@ -826,11 +826,10 @@ namespace ReClassNET.Forms
 			}
 
 			var selectedNodes = memoryView.GetSelectedNodes();
-
 			var node = selectedNodes.FirstOrDefault()?.Node;
 			var parentContainer = node?.GetParentContainer();
 
-			addBytesToolStripDropDownButton.Enabled = parentContainer != null || node is ClassNode;
+			addBytesToolStripDropDownButton.Enabled = true; // parentContainer != null || node is ClassNode;
 			insertBytesToolStripDropDownButton.Enabled = selectedNodes.Count == 1 && parentContainer != null;
 
 			var enabled = selectedNodes.Count > 0 && !(node is ClassNode);

@@ -147,11 +147,14 @@ namespace ReClassNET.Forms
 		public void AddBytesToClass(int bytes)
 		{
 			Contract.Requires(bytes >= 0);
-
 			var node = memoryViewControl.GetSelectedNodes().Select(h => h.Node).FirstOrDefault();
+
 			if (node == null)
 			{
-				return;
+				node = CurrentClassNode;
+
+				if (node == null)
+					return;
 			}
 
 			(node as BaseContainerNode ?? node.GetParentContainer())?.AddBytes(bytes);
