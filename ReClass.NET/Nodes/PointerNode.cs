@@ -31,7 +31,8 @@ namespace ReClassNET.Nodes
 
 		public void UpdateInnerNode(BaseNode sender)
 		{
-			((ClassInstanceNode)InnerNode).InnerNode.SetLevelDefaultOpen(false);
+			if (InnerNode is ClassInstanceNode c)
+				c.InnerNode.SetLevelDefaultOpen(false);
 		}
 
 		public override void GetUserInterfaceInfo(out string name, out Image icon)
@@ -77,27 +78,31 @@ namespace ReClassNET.Nodes
 			{
 				x = AddIconPadding(context, x);
 			}
-			x = AddIcon(context, x, y, context.IconProvider.Pointer, HotSpot.NoneId, HotSpotType.None);
 
+			x = AddIcon(context, x, y, context.IconProvider.Pointer, HotSpot.NoneId, HotSpotType.None);
 			var tx = x;
 			x = AddAddressOffset(context, x, y);
-
 			x = AddText(context, x, y, context.Settings.TypeColor, HotSpot.NoneId, "Ptr") + context.Font.Width;
+
 			if (!IsWrapped)
 			{
 				x = AddText(context, x, y, context.Settings.NameColor, HotSpot.NameId, Name) + context.Font.Width;
 			}
+
 			if (InnerNode == null)
 			{
 				x = AddText(context, x, y, context.Settings.ValueColor, HotSpot.NoneId, "<void>") + context.Font.Width;
 			}
+
 			x = AddIcon(context, x, y, context.IconProvider.Change, 4, HotSpotType.ChangeWrappedType) + context.Font.Width;
+
+			if (InnerNode != null)
+				x = AddIcon(context, x, y, context.IconProvider.Change, 4, HotSpotType.ChangeClassType) + context.Font.Width;
 
 			var ptr = context.Memory.ReadIntPtr(Offset);
 
 			x = AddText(context, x, y, context.Settings.OffsetColor, HotSpot.NoneId, "->") + context.Font.Width;
 			x = AddText(context, x, y, context.Settings.ValueColor, 0, "0x" + ptr.ToString(Constants.AddressHexFormat)) + context.Font.Width;
-
 			x = AddComment(context, x, y);
 
 			DrawInvalidMemoryIndicatorIcon(context, y);
@@ -105,13 +110,18 @@ namespace ReClassNET.Nodes
 			AddDeleteIcon(context, y);
 
 			y += context.Font.Height;
-
 			var size = new Size(x - origX, y - origY);
 
 			if (LevelsOpen[context.Level] && InnerNode != null)
 			{
-				var innerNode = ((ClassInstanceNode)InnerNode).InnerNode;
-				InnerNode.SetLevelOpen(context.Level, LevelsOpen[context.Level]);
+				var innerNode = InnerNode;
+
+				if (InnerNode is ClassInstanceNode ClassInnerNode)
+				{
+					innerNode = ClassInnerNode.InnerNode;
+					InnerNode.SetLevelOpen(context.Level, LevelsOpen[context.Level]);
+				}
+
 				memory.Size = innerNode.MemorySize;
 				memory.UpdateFrom(context.Process, ptr);
 

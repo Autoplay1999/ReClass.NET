@@ -870,11 +870,22 @@ namespace ReClassNET.Forms
 				if (csf.ShowDialog() == DialogResult.OK)
 				{
 					var selectedClassNode = csf.SelectedClass;
+
 					if (refNode.CanChangeInnerNodeTo(selectedClassNode))
 					{
 						if (!refNode.GetRootWrapperNode().ShouldPerformCycleCheckForInnerNode() || IsCycleFree(e.Node.GetParentClass(), selectedClassNode))
 						{
 							refNode.ChangeInnerNode(selectedClassNode);
+						}
+					}
+					else if (refNode is PointerNode pn)
+					{
+						if (pn.InnerNode is ClassInstanceNode cn)
+						{
+							if (!cn.GetRootWrapperNode().ShouldPerformCycleCheckForInnerNode() || IsCycleFree(cn.GetParentClass(), selectedClassNode))
+							{
+								cn.ChangeInnerNode(selectedClassNode);
+							}
 						}
 					}
 				}
