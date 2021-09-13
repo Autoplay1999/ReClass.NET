@@ -95,9 +95,7 @@ namespace ReClassNET.Nodes
 			}
 
 			x = AddIcon(context, x, y, context.IconProvider.Change, 4, HotSpotType.ChangeWrappedType) + context.Font.Width;
-
-			if (InnerNode != null)
-				x = AddIcon(context, x, y, context.IconProvider.Change, 4, HotSpotType.ChangeClassType) + context.Font.Width;
+			x = AddIcon(context, x, y, context.IconProvider.Change, 4, HotSpotType.ChangeClassType) + context.Font.Width;
 
 			var ptr = context.Memory.ReadIntPtr(Offset);
 
