@@ -166,21 +166,18 @@ namespace ReClassNET.CodeGenerator
 			iw.WriteLine($"// {DateTime.Now.ToString("MM-dd-yyyy HH:mm:ss")}");
 			iw.WriteLine();
 
-			if (classes.Count() > 0)
+			using (var en = classes.OrderBy(c => c.Name).GetEnumerator())
 			{
-				using (var en = classes.OrderBy(c => c.Name).GetEnumerator())
+				if (en.MoveNext())
 				{
-					if (en.MoveNext())
+					iw.WriteLine($"class {en.Current.Name};");
+
+					while (en.MoveNext())
 					{
 						iw.WriteLine($"class {en.Current.Name};");
-
-						while (en.MoveNext())
-						{
-							iw.WriteLine($"class {en.Current.Name};");
-						}
-
-						iw.WriteLine();
 					}
+
+					iw.WriteLine();
 				}
 			}
 
