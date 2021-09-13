@@ -166,15 +166,10 @@ namespace ReClassNET.CodeGenerator
 			iw.WriteLine($"// {DateTime.Now.ToString("MM-dd-yyyy HH:mm:ss")}");
 			iw.WriteLine();
 
-			using (var en = classes.GetEnumerator())
+			if (classes.Count() > 0)
 			{
-				var c = en as ICollection<ClassNode>;
-
-				while (c != null)
+				using (var en = classes.OrderBy(c => c.Name).GetEnumerator())
 				{
-					if (c.Count < 2)
-						break;
-
 					if (en.MoveNext())
 					{
 						iw.WriteLine($"class {en.Current.Name};");
@@ -186,8 +181,6 @@ namespace ReClassNET.CodeGenerator
 
 						iw.WriteLine();
 					}
-
-					break;
 				}
 			}
 
@@ -240,12 +233,16 @@ namespace ReClassNET.CodeGenerator
 			{
 				if (en.MoveNext())
 				{
-					WriteClass(iw, en.Current, classes, logger);
+					if (en.Current.MemorySize > 0)
+						WriteClass(iw, en.Current, classes, logger);
 
 					while (en.MoveNext())
 					{
-						iw.WriteLine();
-						WriteClass(iw, en.Current, classes, logger);
+						if (en.Current.MemorySize > 0)
+						{
+							iw.WriteLine();
+							WriteClass(iw, en.Current, classes, logger);
+						}
 					}
 				}
 			}
@@ -311,10 +308,15 @@ namespace ReClassNET.CodeGenerator
 			Contract.Requires(@class != null);
 			Contract.Requires(classes != null);
 
+			var isAligned = (@class.MemorySize % 4) == 0;
+			var skipFirstMember = false;
+
+			if (!isAligned)
+				writer.WriteLine("#pragma pack(push, 1)");
+
 			writer.Write("class ");
 			writer.Write(@class.Name);
 
-			var skipFirstMember = false;
 			if (@class.Nodes.FirstOrDefault() is ClassInstanceNode inheritedFromNode)
 			{
 				skipFirstMember = true;
@@ -374,7 +376,11 @@ namespace ReClassNET.CodeGenerator
 
 			writer.Indent--;
 			writer.Write("}; // Size: 0x");
-			writer.WriteLine($"{@class.MemorySize:X08} ({@class.MemorySize:D})");
+			writer.WriteLine($"{@class.MemorySize:X} ({@class.MemorySize:D})");
+
+			if (!isAligned)
+				writer.WriteLine("#pragma pack(pop)");
+
 			writer.WriteLine();
 			writer.WriteLine($"static_assert(sizeof({@class.Name}) == 0x{@class.MemorySize:X});");
 		}
@@ -655,7 +661,7 @@ namespace ReClassNET.CodeGenerator
 			switch (node)
 			{
 				case ClassInstanceNode classInstanceNode:
-					return $"class {classInstanceNode.InnerNode.Name}";
+					return classInstanceNode.InnerNode.Name;
 				case EnumNode enumNode:
 					return enumNode.Enum.Name;
 			}
@@ -689,18 +695,21 @@ namespace ReClassNET.CodeGenerator
 
 				if (currentNode is PointerNode pointerNode)
 				{
-					sb.Prepend('*');
-
 					if (pointerNode.InnerNode == null) // void*
 					{
 						if (!isAnonymousExpression)
 						{
 							sb.Prepend(' ');
 						}
+
+						sb.Prepend('*');
 						sb.Prepend("void");
 						break;
 					}
 
+					sb.Prepend(' ');
+					sb.Prepend('*');
+					isAnonymousExpression = true;
 					lastWrapperNode = pointerNode;
 					currentNode = pointerNode.InnerNode;
 				}
