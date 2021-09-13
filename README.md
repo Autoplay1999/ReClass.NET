@@ -1,7 +1,7 @@
 # ReClass.NET
 This is a port of ReClass to the .NET platform with lots of additional features.
 
-![](https://abload.de/img/main4hsbj.jpg)
+![](https://i.imgur.com/7vAyzmm.png)
 
 ## Features
 - Support for x86 / x64
