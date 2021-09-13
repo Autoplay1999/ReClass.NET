@@ -262,12 +262,26 @@ namespace ReClassNET.Nodes
 			LevelsOpen[level] = !LevelsOpen[level];
 		}
 
+		/// <summary>Sets the default level.</summary>
+		/// <param name="open">True to open.</param>
+		internal void SetLevelDefaultOpen(bool open)
+		{
+			LevelsOpen.DefaultValue = open;
+		}
+
 		/// <summary>Sets the specific level.</summary>
 		/// <param name="level">The level to set.</param>
 		/// <param name="open">True to open.</param>
 		internal void SetLevelOpen(int level, bool open)
 		{
 			LevelsOpen[level] = open;
+		}
+
+		/// <summary>Gets the specific level.</summary>
+		/// <param name="level">The level to set.</param>
+		internal bool GetLevelOpen(int level)
+		{
+			return LevelsOpen[level];
 		}
 
 		/// <summary>Adds a <see cref="HotSpot"/> the user can interact with.</summary>

@@ -16,7 +16,8 @@ namespace ReClassNET.Nodes
 
 		public PointerNode()
 		{
-			LevelsOpen.DefaultValue = true;
+			LevelsOpen.DefaultValue = false;
+			InnerNodeChanged += UpdateInnerNode;
 		}
 
 		public override void Initialize()
@@ -26,6 +27,11 @@ namespace ReClassNET.Nodes
 			((BaseContainerNode)node.InnerNode).AddBytes(16 * IntPtr.Size);
 
 			ChangeInnerNode(node);
+		}
+
+		public void UpdateInnerNode(BaseNode sender)
+		{
+			((ClassInstanceNode)InnerNode).InnerNode.SetLevelDefaultOpen(false);
 		}
 
 		public override void GetUserInterfaceInfo(out string name, out Image icon)
@@ -104,14 +110,16 @@ namespace ReClassNET.Nodes
 
 			if (LevelsOpen[context.Level] && InnerNode != null)
 			{
-				memory.Size = InnerNode.MemorySize;
+				var innerNode = ((ClassInstanceNode)InnerNode).InnerNode;
+				InnerNode.SetLevelOpen(context.Level, LevelsOpen[context.Level]);
+				memory.Size = innerNode.MemorySize;
 				memory.UpdateFrom(context.Process, ptr);
 
 				var innerContext = context.Clone();
 				innerContext.Address = ptr;
 				innerContext.Memory = memory;
 
-				var innerSize = InnerNode.Draw(innerContext, tx, y);
+				var innerSize = innerNode.Draw(innerContext, tx, y);
 
 				size.Width = Math.Max(size.Width, innerSize.Width + tx - origX);
 				size.Height += innerSize.Height;
